@@ -15,6 +15,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.Condition;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -47,21 +49,21 @@ public class MainActivity extends ActionBarActivity {
             }
         };
 
-
         Button btnStart = (Button) findViewById(R.id.btnStart);
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                MyLooperThread myLooperThread = new MyLooperThread();
+                CountDownLatch latch = new CountDownLatch(1);
+
+                MyLooperThread myLooperThread = new MyLooperThread(latch);
                 myLooperThread.start();
 
                 try {
-                    Thread.sleep(1000);
+                    latch.await();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
                 tvAsyncTask.setText("AsyncTask");
                 MyAsyncTask myAsyncTask = new MyAsyncTask(tvAsyncTask, progressBarAsyncTask, myLooperThread.getHandler());
                 myAsyncTask.execute(30);

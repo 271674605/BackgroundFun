@@ -7,6 +7,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 
 public class MyAsyncTask extends AsyncTask<Integer, Void, String> {
 

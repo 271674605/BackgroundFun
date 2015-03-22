@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.ProgressBar;
 
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 
 class MyThread implements Runnable {
     Handler handler;
