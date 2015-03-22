@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Condition;
 
 
@@ -54,15 +55,17 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
 
-                CountDownLatch latch = new CountDownLatch(1);
+                Semaphore sem = new Semaphore(1);
 
-                MyLooperThread myLooperThread = new MyLooperThread(latch);
+                MyLooperThread myLooperThread = new MyLooperThread(sem);
                 myLooperThread.start();
 
                 try {
-                    latch.await();
+                    sem.acquire();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                } finally {
+                    sem.release();
                 }
                 tvAsyncTask.setText("AsyncTask");
                 MyAsyncTask myAsyncTask = new MyAsyncTask(tvAsyncTask, progressBarAsyncTask, myLooperThread.getHandler());
