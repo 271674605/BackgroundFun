@@ -82,4 +82,13 @@
         android:layout_toRightOf="@+id/btnStart"
         android:layout_toEndOf="@+id/btnStart" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/tvHandlerThread"
+        android:layout_below="@+id/pbHandler"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
 </RelativeLayout>

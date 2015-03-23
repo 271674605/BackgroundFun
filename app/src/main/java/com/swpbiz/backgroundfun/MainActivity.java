@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
@@ -22,6 +23,9 @@ import java.util.concurrent.locks.Condition;
 
 public class MainActivity extends ActionBarActivity {
 
+    private static final int MSG_SENDING_START = 999;
+    private static final int MSG_COUNT_COMPLETE = 1000;
+    private static final int MSG_COUNT_RESET = 1001;
     TextView tvAsyncTask;
     ProgressBar progressBarAsyncTask;
 
@@ -31,10 +35,54 @@ public class MainActivity extends ActionBarActivity {
     Handler handler;
     ProgressBar handlerProgressBar;
 
+    Handler myHtHandler;
+    Handler myUiHandler;
+    TextView tvHandlerThread;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        tvHandlerThread = (TextView) findViewById(R.id.tvHandlerThread);
+
+        HandlerThread myHt = new HandlerThread("my handler thread");
+        myHt.start();
+        myHtHandler = new Handler(myHt.getLooper()) {
+            int count = 0;
+
+            @Override
+            public void handleMessage(Message msg) {
+                if (msg.what == MSG_SENDING_START || msg.what == MSG_COUNT_RESET) {
+                    if (msg.what == MSG_COUNT_RESET) count = 0;
+                    try {
+                        Thread.sleep(200);
+                        Message message = new Message();
+                        Bundle bundle = new Bundle();
+                        bundle.putString("message", "myHtHandler handled: " + count);
+                        message.setData(bundle);
+                        message.what = MSG_COUNT_COMPLETE;
+                        myUiHandler.sendMessage(message);
+                        count++;
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+        myUiHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                if (msg.what == MSG_COUNT_COMPLETE) {
+                    tvHandlerThread.setText(msg.getData().getString("message"));
+                    myHtHandler.sendEmptyMessage(MSG_SENDING_START);
+                } else if (msg.what == MSG_COUNT_RESET) {
+                    tvHandlerThread.setText("RESET to 0");
+                    myHtHandler.sendEmptyMessage(MSG_COUNT_RESET);
+                }
+            }
+        };
+
 
         tvAsyncTask = (TextView) findViewById(R.id.tvAsyncTask);
         progressBarAsyncTask = (ProgressBar) findViewById(R.id.progressBarAsyncTask);
@@ -78,6 +126,8 @@ public class MainActivity extends ActionBarActivity {
 
                 Thread myThread = new Thread(new MyThread(handler, handlerProgressBar, myLooperThread.getHandler()));
                 myThread.start();
+
+                myUiHandler.sendEmptyMessage(MSG_COUNT_RESET);
 
 //                Intent activityIntent = new Intent(MainActivity.this, MainActivity2Activity.class);
 //                startActivity(activityIntent);
